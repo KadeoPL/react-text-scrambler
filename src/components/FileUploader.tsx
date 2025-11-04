@@ -8,7 +8,11 @@ import { shuffleLetters } from "@/utils/shuffleLetters";
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
-export default function FileUploader() {
+interface FileUploaderProps {
+  onTextProcessed: (shuffledText: string) => void;
+}
+
+export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
 
@@ -21,8 +25,9 @@ export default function FileUploader() {
   async function handleFileUpload() {
     if (!selectedFile) return;
 
-    if (selectedFile.type != "text/plain") {
+    if (!selectedFile.type.startsWith("text")) {
       setStatus("error");
+      alert("Uncorrect file type");
       return;
     }
 
@@ -33,7 +38,7 @@ export default function FileUploader() {
       if (!result) {
         throw new Error();
       }
-
+      onTextProcessed(result.text);
       setStatus("success");
     } catch (error) {
       setStatus("error");
@@ -45,13 +50,13 @@ export default function FileUploader() {
       <Label htmlFor="file-input" className="flex flex-col gap-1">
         <span className="font-semibold text-lg">Upload Text File</span>
         <span className="text-muted-foreground text-sm">
-          Only .txt files are allowed.
+          Only text files are allowed.
         </span>
       </Label>
       <Input
         id="file-input"
         type="file"
-        accept=".txt"
+        accept="text/*"
         onChange={handleFileChange}
       />
       <Button
