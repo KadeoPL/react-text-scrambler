@@ -5,8 +5,9 @@ import { Upload } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { useState, type ChangeEvent } from "react";
 import { shuffleLetters } from "@/utils/shuffleLetters";
+import { toast } from "sonner";
 
-type UploadStatus = "idle" | "uploading" | "success" | "error";
+type UploadStatus = "idle" | "uploading";
 
 interface FileUploaderProps {
   onTextProcessed: (shuffledText: string) => void;
@@ -15,6 +16,7 @@ interface FileUploaderProps {
 export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
@@ -25,9 +27,16 @@ export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
   async function handleFileUpload() {
     if (!selectedFile) return;
 
-    if (!selectedFile.type.startsWith("text")) {
-      setStatus("error");
-      alert("Uncorrect file type");
+    const fileName = selectedFile.name;
+    const isTxtFile = fileName.toLowerCase().endsWith(".txt");
+
+    if (!isTxtFile) {
+      toast.error("Unsupported file type. Only .txt files are accepted.");
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      toast.error("File size exceeds the limit (max 10MB).");
       return;
     }
 
@@ -35,13 +44,15 @@ export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
 
     try {
       const result = await shuffleLetters(selectedFile);
-      if (!result) {
-        throw new Error();
-      }
-      onTextProcessed(result.text);
-      setStatus("success");
+
+      onTextProcessed(result);
+
+      toast.success("File successfully uploaded");
+      setStatus("idle");
     } catch (error) {
-      setStatus("error");
+      toast.error("Failed to upload file");
+      setStatus("idle");
+      console.error(error);
     }
   }
 
@@ -56,7 +67,7 @@ export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
       <Input
         id="file-input"
         type="file"
-        accept="text/*"
+        accept=".txt"
         onChange={handleFileChange}
       />
       <Button

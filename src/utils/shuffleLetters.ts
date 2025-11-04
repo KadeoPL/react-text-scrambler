@@ -1,22 +1,45 @@
 export async function shuffleLetters(file: File) {
   const text = await file.text();
-  const arrayOfStrings = text.split("\n");
+  const arrayLinesOfText = text.split("\n");
 
-  const arrayOfShuffleStrings = arrayOfStrings.map((line) => {
-    const wordsArray = line.split(" ");
-    wordsArray.map((word) => {
-      if (word.length > 3) {
-        const prefix = word.substring(0, 1);
-        const sufix =
-          word.substring(word.length - 1) === ","
-            ? word.substring(word.length - 2)
-            : word.substring(word.length - 1);
-        const content = word.substring(1, word.length - 1);
+  const arrayOfShuffleWords = arrayLinesOfText.map((line) => {
+    const wordsArray = line.split(/(\s+)/);
 
-        console.log(prefix + " " + content + " " + sufix);
-      }
+    const processedWordsArray = wordsArray.map((word) => {
+      const match = word.match(/^(\W*)([\p{L}\d]+)(\W*)$/u);
+
+      if (!match) return word;
+
+      const [_, prefix, content, suffix] = match;
+
+      if (content.length <= 3) return word;
+
+      const firstLetter = content[0];
+      const lastLetter = content[content.length - 1];
+      const middle = content.substring(1, content.length - 1);
+
+      const shuffleMiddle = mixLetters(middle);
+      return prefix + firstLetter + shuffleMiddle + lastLetter + suffix;
     });
+
+    return processedWordsArray.join("");
   });
 
-  return { text, status: true };
+  function mixLetters(letters: string) {
+    const lettersForMix = letters.split("");
+
+    for (let i = lettersForMix.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [lettersForMix[i], lettersForMix[j]] = [
+        lettersForMix[j],
+        lettersForMix[i],
+      ];
+    }
+
+    return lettersForMix.join("");
+  }
+
+  const finalShuffledText = arrayOfShuffleWords.join("\n");
+
+  return finalShuffledText;
 }
