@@ -21,16 +21,23 @@ export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
       setSelectedFile(e.target.files[0]);
+      e.target.value = "";
     }
   }
 
   async function handleFileUpload() {
     if (!selectedFile) return;
+    if (status === "uploading") return;
 
-    const fileName = selectedFile.name;
-    const isTxtFile = fileName.toLowerCase().endsWith(".txt");
+    if (selectedFile.size === 0) {
+      toast.error("The file is empty.");
+      return;
+    }
 
-    if (!isTxtFile) {
+    const isTxtExtension = selectedFile.name.endsWith(".txt");
+    const isTextFile = selectedFile.type === "text/plain";
+
+    if (!isTxtExtension || !isTextFile) {
       toast.error("Unsupported file type. Only .txt files are accepted.");
       return;
     }
@@ -61,7 +68,7 @@ export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
       <Label htmlFor="file-input" className="flex flex-col gap-1">
         <span className="font-semibold text-lg">Upload Text File</span>
         <span className="text-muted-foreground text-sm">
-          Only text files are allowed.
+          Only text files (.txt) are allowed. Maximum file size: 10 MB.
         </span>
       </Label>
       <Input
@@ -77,6 +84,9 @@ export default function FileUploader({ onTextProcessed }: FileUploaderProps) {
       >
         {status === "uploading" ? <Spinner /> : <Upload />} Upload
       </Button>
+      {selectedFile && (
+        <p className="text-sm text-muted-foreground">{selectedFile.name}</p>
+      )}
     </div>
   );
 }

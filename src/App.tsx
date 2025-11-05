@@ -8,7 +8,7 @@ function App() {
   return (
     <>
       {" "}
-      <main className="w-svw h-svh px-10 lg:px-52 flex flex-col md:flex-row-reverse gap-10 items-center justify-center">
+      <main className="w-svw min-h-svh p-10 lg:px-52 flex flex-col md:flex-row-reverse gap-10 items-center justify-center overflow-x-auto">
         <Result text={outputText} />
         <FileUploader onTextProcessed={setOutputText} />
       </main>

@@ -1,5 +1,13 @@
+import { toast } from "sonner";
+
 export async function shuffleLetters(file: File) {
   const text = await file.text();
+
+  if (/�/.test(text)) {
+    toast.error("The file is not properly encoded in UTF-8.");
+    throw new Error("Invalid UTF-8 encoding");
+  }
+
   const arrayLinesOfText = text.split("\n");
 
   const arrayOfShuffleWords = arrayLinesOfText.map((line) => {
